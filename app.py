@@ -10,16 +10,18 @@ import dash_bootstrap_components as dbc
 import colorlover as cl
 import dash_table
 import news
-
-
-
+import backend
+from dash_table import FormatTemplate
+from dash_table.Format import Format, Group
 from dash.dependencies import Input, Output, State
 from plotly import tools
 
-df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/dash-stock-ticker-demo.csv')
-colorscale = cl.scales['9']['qual']['Paired']
 
-df2 = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/solar.csv').iloc[:,:3]
+df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/dash-stock-ticker-demo.csv')
+df2,df3 = backend.get_undervalued(30)
+format = {df2.columns[0]:Format(),df2.columns[1]:FormatTemplate.money(2),df2.columns[2]:FormatTemplate.money(2),df2.columns[3]:FormatTemplate.percentage(2,True)}
+
+colorscale = cl.scales['9']['qual']['Paired']
 
 external_stylesheets = [dbc.themes.BOOTSTRAP]
 
@@ -34,19 +36,20 @@ server = app.server
 #Style Components
 text_style = {
     'textAlign':'center',
-    'color':'#0074D9'
+    'color':'#FFFFFF'
 }
 page = {
     'margin-left':'5%',
     'margin-right':'5%',
     'top':0,
     'padding':'20px 10px',
-    'width':'40%'
+    'width':'40%',
+    'background-color':'#2b000a'
 }
 panel = {
     'width':'25%',
     'padding':'20px 10px',
-    'background-color':'#f8f9fa'
+    'background-color':'#120004'
 }
 
 #Charts
@@ -68,16 +71,19 @@ app.layout = html.Div(
                 dcc.Markdown("This app does bla bla bla", style=text_style),
                 dash_table.DataTable(
                     id='table',
-                    columns=[{"name": i, "id": i} for i in df2.columns],
+                    columns= [  dict(id='Ticker', name='Ticker'),
+                                dict(id='Close', name='Close Price', type='numeric', format=FormatTemplate.money(2)),
+                                dict(id='Mean30', name='Mean30', type='numeric', format=FormatTemplate.money(2)),
+                                dict(id='Percentage30', name='%Dev', type='numeric', format=FormatTemplate.percentage(2,True))],
                     data=df2.to_dict('records'),
                     style_cell={'textAlign': 'center',
-                                'backgroundColor': 'rgb(50, 50, 50)',
+                                'backgroundColor': '#131324',
                                 'color': 'white',
                                 'fontSize':14,
                                 'font-family':'sans-serif'},
                     style_as_list_view=True,
                     style_header={
-                            'backgroundColor': 'grey',
+                            'backgroundColor': '#d40230',
                             'fontWeight': 'bold'
                         }
                 ),
@@ -86,16 +92,20 @@ app.layout = html.Div(
                 dcc.Markdown("This app does bla bla bla", style=text_style),
                 dash_table.DataTable(
                     id='table2',
-                    columns=[{"name": i, "id": i} for i in df2.columns],
-                    data=df2.to_dict('records'),
+                    columns=[dict(id='Ticker', name='Ticker'),
+                             dict(id='Close', name='Close Price', type='numeric', format=FormatTemplate.money(2)),
+                             dict(id='Mean30', name='Mean30', type='numeric', format=FormatTemplate.money(2)),
+                             dict(id='Percentage30', name='%Dev', type='numeric',
+                                  format=FormatTemplate.percentage(2, True))],
+                    data=df3.to_dict('records'),
                     style_cell={'textAlign': 'center',
-                                'backgroundColor': 'rgb(50, 50, 50)',
+                                'backgroundColor': '#131324',
                                 'color': 'white',
                                 'fontSize': 14,
                                 'font-family': 'sans-serif'},
                     style_as_list_view=True,
                     style_header={
-                        'backgroundColor': 'grey',
+                        'backgroundColor': '#d40230',
                         'fontWeight': 'bold'
                     }
                 )
@@ -130,7 +140,7 @@ app.layout = html.Div(
                     id='news-input',
                     options=[{'label': s[0], 'value': str(s[1])}
                              for s in zip(df.Stock.unique(), df.Stock.unique())],
-                    value=['TSLA'],
+                    value=['COKE'],
                     multi=False
                 ),
                 html.Br(),
@@ -138,7 +148,7 @@ app.layout = html.Div(
             ],
             style=panel
         )
-    ]
+    ], style={'background-color':'#2b000a'}
 )
 
 def bbands(price, window_size=10, num_of_std=5):
@@ -216,7 +226,7 @@ def update_news(ticker):
             columns=[{"name": i, "id": i} for i in news_df.columns],
             data=news_df.to_dict('records'),
             style_cell={'textAlign': 'center',
-                        'backgroundColor': 'rgb(50, 50, 50)',
+                        'backgroundColor': '#2b000a',
                         'color': 'white',
                         'fontSize': 14,
                         'font-family': 'sans-serif',
@@ -225,7 +235,7 @@ def update_news(ticker):
                         },
             style_as_list_view=True,
             style_header={
-                'backgroundColor': 'grey',
+                'backgroundColor': '#d40230',
                 'fontWeight': 'bold'
             },
             style_data={'height':'auto'},

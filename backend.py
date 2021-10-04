@@ -3,6 +3,7 @@ import pandas as pd
 import datetime as dt
 import yfinance as yf
 
+
 def get_undervalued(days):
     url = 'https://raw.githubusercontent.com/datasets/nasdaq-listings/master/data/nasdaq-listed.csv'
     df = pd.read_csv(url)
@@ -13,7 +14,7 @@ def get_undervalued(days):
     list_mean = []
     list_close = []
 
-    for s in df['Symbol'].unique()[:50]:
+    for s in df['Symbol'].unique()[150:180]:
         tickerSymbol = s
         tickerData = yf.Ticker(tickerSymbol)
         tickerDf = tickerData.history(period='id', start=three_d.strftime("%Y-%m-%d"), end=date.strftime("%Y-%m-%d"))
@@ -34,6 +35,6 @@ def get_undervalued(days):
 
     equity_df['Percentage30'] = equity_df['Close']/equity_df['Mean30'] - 1
 
-    return equity_df.sort_values(by='Percentage30').iloc[:10]
+    return equity_df.sort_values(by='Percentage30').iloc[:10], equity_df.sort_values(by='Percentage30',ascending=False).iloc[:10]
 
-print(get_undervalued(30))
+
